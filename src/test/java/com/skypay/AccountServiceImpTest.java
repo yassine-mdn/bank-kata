@@ -115,4 +115,19 @@ class AccountServiceImpTest {
         assertEquals(-50, accountServiceImp.getTransactions().get(1).amount());
         assertEquals(50, accountServiceImp.getTransactions().get(1).balance());
     }
+
+    @Test
+    void withdraw_ShouldTransactionsHaveDifferentTimeStamps_WhenMadeInTheSameDay(){
+        setClockTo("2020-01-01T00:00");
+        accountServiceImp.deposit(100);
+        accountServiceImp.deposit(200);
+        setClockTo("2020-01-01T01:00");
+        accountServiceImp.withdraw(50);
+        setClockTo("2020-01-01T05:00");
+        accountServiceImp.withdraw(150);
+        assertEquals(4, accountServiceImp.getTransactions().size());
+        assertNotEquals(accountServiceImp.getTransactions().get(2).timeStamp().toString(), accountServiceImp.getTransactions().get(3).timeStamp().toString());
+    }
+
+
 }

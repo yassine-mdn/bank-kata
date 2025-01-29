@@ -31,7 +31,14 @@ public class AccountServiceImp implements AccountService{
 
     @Override
     public void withdraw(int amount) {
-
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Withdrawal amount must be positive.");
+        }
+        if (amount > balance) {
+            throw new IllegalArgumentException("Insufficient funds for withdrawal.");
+        }
+        balance -= amount;
+        transactions.add(new Transaction(LocalDateTime.now(clock), -amount, balance));
     }
 
     @Override
