@@ -74,9 +74,9 @@ class AccountServiceImpTest {
     void deposit_ShouldAddTransactionToStatement_WhenDepositIsMade() {
         accountServiceImp.deposit(100);
         assertEquals(1, accountServiceImp.getTransactions().size());
-        assertEquals(LocalDateTime.now(clock).format(formater), accountServiceImp.getTransactions().get(0).timeStamp().format(formater));
-        assertEquals(100, accountServiceImp.getTransactions().get(0).amount());
-        assertEquals(100, accountServiceImp.getTransactions().get(0).balance());
+        assertEquals(LocalDateTime.now(clock).format(formater), accountServiceImp.getTransactions().getFirst().timeStamp().format(formater));
+        assertEquals(100, accountServiceImp.getTransactions().getFirst().amount());
+        assertEquals(100, accountServiceImp.getTransactions().getFirst().balance());
     }
 
     @Test

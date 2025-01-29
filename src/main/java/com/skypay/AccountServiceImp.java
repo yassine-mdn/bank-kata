@@ -15,7 +15,7 @@ public class AccountServiceImp implements AccountService{
     @Getter
     private int balance;
     @Getter
-    private List<Transaction> transactions;
+    private final List<Transaction> transactions;
 
     public AccountServiceImp(Clock clock) {
         this.clock = clock;
