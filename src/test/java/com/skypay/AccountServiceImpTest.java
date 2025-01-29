@@ -129,5 +129,37 @@ class AccountServiceImpTest {
         assertNotEquals(accountServiceImp.getTransactions().get(2).timeStamp().toString(), accountServiceImp.getTransactions().get(3).timeStamp().toString());
     }
 
+    @Test
+    void printStatement_ShouldPrintNoTransactionMessage_WhenNoTransactions() {
+        accountServiceImp.printStatement();
+        assertEquals(PRINT_STATEMENT_EMPTY, outputStreamCaptor.toString());
+    }
+
+    @Test
+    void printStatement_ShouldIncludePrintHeader_WhenTransactionsExist() {
+        accountServiceImp.deposit(100);
+        accountServiceImp.printStatement();
+        assertTrue(outputStreamCaptor.toString().trim().contains(PRINT_STATEMENT_HEADER));
+    }
+
+    @Test
+    void PrintStatement_ShouldDisplayTransactionsInChronologicalOrder_WhenTransactionsExist() {
+        setClockTo("2020-01-01T00:00");
+        accountServiceImp.deposit(100);
+        setClockTo("2020-01-01T01:00");
+        accountServiceImp.deposit(200);
+        setClockTo("2020-01-02T00:00");
+        accountServiceImp.withdraw(50);
+        setClockTo("2020-01-02T01:00");
+        accountServiceImp.withdraw(150);
+
+        String expected = PRINT_STATEMENT_HEADER+
+                "2020/01/02 || -150 || 100\n"+
+                "2020/01/02 || -50 || 250\n"+
+                "2020/01/01 || 200 || 300\n"+
+                "2020/01/01 || 100 || 100\n";
+
+        assertEquals(expected, outputStreamCaptor.toString().trim());
+    }
 
 }
