@@ -69,7 +69,7 @@ class AccountServiceImpTest {
     void deposit_ShouldAddTransactionToStatement_WhenDepositIsMade() {
         accountServiceImp.deposit(100);
         assertEquals(1, accountServiceImp.getTransactions().size());
-        assertEquals(LocalDateTime.now().format(formater), accountServiceImp.getTransactions().get(0).timeStamp().format(formater));
+        assertEquals(LocalDateTime.now(clock).format(formater), accountServiceImp.getTransactions().get(0).timeStamp().format(formater));
         assertEquals(100, accountServiceImp.getTransactions().get(0).amount());
         assertEquals(100, accountServiceImp.getTransactions().get(0).balance());
     }
@@ -82,5 +82,37 @@ class AccountServiceImpTest {
         accountServiceImp.deposit(200);
         assertEquals(2, accountServiceImp.getTransactions().size());
         assertNotEquals(accountServiceImp.getTransactions().get(0).timeStamp().toString(), accountServiceImp.getTransactions().get(1).timeStamp().toString());
+    }
+
+    @Test
+    void withdraw_ShouldThrowException_WhenGivenNegativeValues() {
+        assertThrows(IllegalArgumentException.class, () -> accountServiceImp.withdraw(-200));
+    }
+
+    @Test
+    void withdraw_ShouldThrowException_WhenGivenZero() {
+        assertThrows(IllegalArgumentException.class, () -> accountServiceImp.withdraw(0));
+    }
+
+    @Test
+    void withdraw_ShouldThrowException_WhenGivenValueGreaterThanBalance() {
+        assertThrows(IllegalArgumentException.class, () -> accountServiceImp.withdraw(200));
+    }
+
+    @Test
+    void withdraw_ShouldDecreaseBalance_WhenGivenPositiveValuesThatIsLowerThanBalance() {
+        accountServiceImp.deposit(100);
+        accountServiceImp.withdraw(50);
+        assertEquals(50, accountServiceImp.getBalance());
+    }
+
+    @Test
+    void withdraw_ShouldAddTransactionToStatement_WhenWithdrawIsMade() {
+        accountServiceImp.deposit(100);
+        accountServiceImp.withdraw(50);
+        assertEquals(2, accountServiceImp.getTransactions().size());
+        assertEquals(LocalDateTime.now(clock).format(formater), accountServiceImp.getTransactions().get(1).timeStamp().format(formater));
+        assertEquals(-50, accountServiceImp.getTransactions().get(1).amount());
+        assertEquals(50, accountServiceImp.getTransactions().get(1).balance());
     }
 }
