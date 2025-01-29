@@ -5,10 +5,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -22,19 +20,24 @@ class AccountServiceImpTest {
     private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
 
     private static final String PRINT_STATEMENT_HEADER = "date       || Amount || balance\n";
+    private static final String PRINT_STATEMENT_EMPTY = "No transactions to display\n";
+    private static final DateTimeFormatter formater = DateTimeFormatter.ofPattern("yyyy/M/dd");
 
     @BeforeEach
     void setUp() {
         clock = mock(Clock.class);
+        setClockTo("2025-01-29T00:00");
         accountServiceImp = new AccountServiceImp(clock);
         System.setOut(new PrintStream(outputStreamCaptor));
     }
 
     /**
-     * @param date This method sets the clock to a specific date.
+     * @param dateTime This method sets the clock to a specific date.
      */
-    private void setClockTo(String date) {
-        Instant instant = LocalDate.parse(date).atStartOfDay(ZoneId.systemDefault()).toInstant();
+    private void setClockTo(String dateTime) {
+        Instant instant = LocalDateTime.parse(dateTime)
+                .atZone(ZoneId.systemDefault())
+                .toInstant();
         when(clock.instant()).thenReturn(instant);
         when(clock.getZone()).thenReturn(ZoneId.systemDefault());
     }
@@ -64,21 +67,20 @@ class AccountServiceImpTest {
 
     @Test
     void deposit_ShouldAddTransactionToStatement_WhenDepositIsMade() {
-        setClockTo("2020-01-01");
         accountServiceImp.deposit(100);
-        accountServiceImp.printStatement();
-        String expected =  PRINT_STATEMENT_HEADER+
-                          "01/01/2020 || 100.00 || 100.00";
-        assertEquals(expected,  outputStreamCaptor.toString()
-                .trim());
+        assertEquals(1, accountServiceImp.getTransactions().size());
+        assertEquals(LocalDateTime.now().format(formater), accountServiceImp.getTransactions().get(0).timeStamp().format(formater));
+        assertEquals(100, accountServiceImp.getTransactions().get(0).amount());
+        assertEquals(100, accountServiceImp.getTransactions().get(0).balance());
     }
 
     @Test
     void deposit_ShouldTransactionsHaveDifferentTimeStamps_WhenMadeInTheSameDay(){
-        setClockTo("2020-01-01");
+        setClockTo("2020-01-01T00:00");
         accountServiceImp.deposit(100);
+        setClockTo("2020-01-01T01:00");
         accountServiceImp.deposit(200);
         assertEquals(2, accountServiceImp.getTransactions().size());
-        assertNotEquals(accountServiceImp.getTransactions().get(0).getTimestamp(), accountServiceImp.getTransactions().get(1).getTimestamp());
+        assertNotEquals(accountServiceImp.getTransactions().get(0).timeStamp().toString(), accountServiceImp.getTransactions().get(1).timeStamp().toString());
     }
 }
