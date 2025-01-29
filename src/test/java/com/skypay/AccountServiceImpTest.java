@@ -1,5 +1,6 @@
 package com.skypay;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +32,10 @@ class AccountServiceImpTest {
         System.setOut(new PrintStream(outputStreamCaptor));
     }
 
+    @AfterEach
+    public void tearDown() {
+        System.setOut(standardOut);
+    }
     /**
      * @param dateTime This method sets the clock to a specific date.
      */
@@ -143,7 +148,7 @@ class AccountServiceImpTest {
     }
 
     @Test
-    void PrintStatement_ShouldDisplayTransactionsInChronologicalOrder_WhenTransactionsExist() {
+    void PrintStatement_ShouldDisplayTransactionsInReverseChronologicalOrder_WhenTransactionsExist() {
         setClockTo("2020-01-01T00:00");
         accountServiceImp.deposit(100);
         setClockTo("2020-01-01T01:00");
@@ -153,13 +158,15 @@ class AccountServiceImpTest {
         setClockTo("2020-01-02T01:00");
         accountServiceImp.withdraw(150);
 
-        String expected = PRINT_STATEMENT_HEADER+
-                "2020/01/02 || -150 || 100\n"+
-                "2020/01/02 || -50 || 250\n"+
-                "2020/01/01 || 200 || 300\n"+
-                "2020/01/01 || 100 || 100\n";
+        accountServiceImp.printStatement();
 
-        assertEquals(expected, outputStreamCaptor.toString().trim());
+        String expected = PRINT_STATEMENT_HEADER+
+                "02/01/2020 || -150 || 100\n"+
+                "02/01/2020 || -50 || 250\n"+
+                "01/01/2020 || 200 || 300\n"+
+                "01/01/2020 || 100 || 100\n";
+
+        assertEquals(expected.trim(), outputStreamCaptor.toString().trim());
     }
 
 }
